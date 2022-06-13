@@ -124,3 +124,47 @@ float getPressure(){
 float getHuminity(){
     return dHuminity;
 }
+
+int getTempWx(){
+    int iTemp;
+    iTemp = (int)((dTemp * 1.8) + 32.);  //auf Fahrenheit umrechnen
+    return iTemp;
+}
+
+int getPressureWx(){
+    int iPressure;
+    iPressure = (int)(dPressure/10.);
+    return iPressure;
+}
+    
+int getHuminityWx(){
+    int iHuminity;
+    if(dHuminity >= 0 && dHuminity < 99.5) {
+    iHuminity = (int)dHuminity;
+    } else iHuminity = 0;
+    return iHuminity;
+}
+
+int getTempTele(){
+    int iTemp=0;
+    if(dTemp >= -40.) {
+        iTemp = (int)((dTemp+40)*2); //-40=0 +60=200 0,5 Grad/Digit   EQNS /2 -> -40
+    }
+    return iTemp;
+}
+
+int getPressureTele(){
+    int iPressure=0;
+    if(dPressure >= 85000.) {
+        iPressure = (int)((dPressure/100.)-850.);  // 850-1105mBar 150=1000mBar  EQNS +850
+    }
+    return iPressure;
+}
+    
+int getHuminityTele(){
+    int iHuminity=0;
+    if(dHuminity >= 0 && dHuminity < 99.5) {
+        iHuminity = (int)dHuminity*2; // 0-99 = 0-198  EQNS /2
+    }
+    return iHuminity;
+}

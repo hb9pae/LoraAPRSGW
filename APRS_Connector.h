@@ -46,15 +46,18 @@ public:
     int startAPRS_Connector(string PythonApp);
     int process_activ();
     int socket_activ();
+    int restart_request();
+    int reboot_request();
     void setPort(int Port);
     int sendudp(char *msg, int length);
     int receiveUDP(char* Receiv,int Len);
     int proofACK(char* buffer, int size);
     string getIP_eth0();
     string getIP_wlan0();
+    std::string exec(const char* cmd);
 
 private:
-    std::string exec(const char* cmd);
+//    std::string exec(const char* cmd);
     string m_Path;
     struct sockaddr_in si_other;
     int s;

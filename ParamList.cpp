@@ -36,9 +36,11 @@ ParamList::~ParamList() {
     
     
     string line;
+    int iFound;
     while (getline(conf_file, line)) {
         if(!line.find("#")==0 ){
-            int iFound =line.find(":");
+            iFound =line.find("=");
+//            if(iFound == 0) iFound =line.find("=");
             if(iFound>0){
                 //printf("%s",line.c_str());
                 //printf("\":\" found at %d",iFound);

@@ -29,24 +29,27 @@ extern "C"
 
 using namespace std;
 
-
 string sConfig="./APRS.conf";
+string sPosconf="./position.conf";
 string sPythonApp="Lora_APRS_gateway_6.py";
 //string sConfig="/home/pi/iot4pi/APRS.conf";
 //string sPythonApp="/home/pi/iot4pi/Lora_APRS_gateway_6.py";
 double OLED_timeout =60*5;  //OLED Timeout in seconds
 double TempSend=60*5;      //when to send Temp
 HopeRF o_HopeRF;
-ParamList myList;
+ParamList myList,posList;
 APRS_Connector o_APRS;
 HMI o_HMI;
 string sError="";
 string APRS_IS_CALL;
+string LATITUDE;
+string LONGITUDE;
+string PARM,UNIT,EQNS,BITS,SNR,MENUE; //Telemetry settings
 string eth0;
 string wlan0;
 int ConfigPage=1; //which page is showing
 int StatisticPage=1; //which page is showing
-string showErrorAtStart="True";
+string showErrorAtStart="TRUE";
 
 //Hf Parameter
 uint32_t RxFrequ;
@@ -64,7 +67,7 @@ time_t seconds; //Get Starting Time
 // 1 = Config
 // 2 = Statistic
 // 3 = Packets 
-int Menue=0; 
+int Menue=0; //wird von 
 //Packet Statistic
 int pkt_receive_GW_OK = 0;
 int pkt_receive_GW_NOK = 0;
@@ -110,9 +113,27 @@ int SetupGW(){
         sError="Error Reading Conf File!";
         return 1;
     }
+    if(posList.openConfig(sPosconf.c_str())==1){
+        printf("Error Reading Position Config File!");
+        sError="Error Reading Position Conf File!";
+        return 1;
+    }
 
     APRS_IS_CALL=myList.getValue("APRS_IS_CALL");
     showErrorAtStart=myList.getValue("ShowErrorAtStart");
+    LATITUDE=posList.getValue("LATITUDE");
+    LONGITUDE=posList.getValue("LONGITUDE");
+    if(LONGITUDE.length() == 8) {
+        string temp = "0";
+        temp.append(LONGITUDE);
+        LONGITUDE = temp;
+    }
+    PARM=myList.getValue("PARM");
+    UNIT=myList.getValue("UNIT");
+    EQNS=myList.getValue("EQNS");
+    BITS=myList.getValue("BITS");
+    SNR=myList.getValue("SNR");
+    MENUE=myList.getValue("Display"); Menue=atoi(MENUE.c_str());
     
     //get own IP adresses
     eth0= o_APRS.getIP_eth0();
@@ -141,8 +162,10 @@ int SetupGW(){
         SF=atoi(Temp_SF.c_str());
         BW =atof(Temp_BW.c_str());
         CR=atoi(Temp_CR.c_str());
-        printf("Setup Parameter: %u | %u | %d | %f | %d \n",RxFrequ, TxFrequ, SF, BW,CR );
-        if(o_HopeRF.setParam(RxFrequ,TxFrequ,SF,BW,CR)!=0){
+        int iSNR;
+        if(SNR.compare("TRUE")==0) iSNR=1; else iSNR=0;
+        printf("Setup Parameter: %u | %u | %d | %f | %d | %d\n",RxFrequ, TxFrequ, SF, BW,CR,iSNR );
+        if(o_HopeRF.setParam(RxFrequ,TxFrequ,SF,BW,CR,iSNR)!=0){
             printf("HopeRf could not read Parameter \n");
             sError="HopeRf could not  read Parameter";
             return 1;
@@ -162,16 +185,20 @@ int SetupGW(){
     //###########################
     //Setting up APRS Connector
     int iPort=atoi(myList.getValue("LISTEN_UDP_PORT").c_str());
-    string APPRS_Host=myList.getValue("APRS_IS_HOST");
-    printf("APRS_IS_HOST is %s | LISTEN_UDP_PORT is %d \n",APPRS_Host.c_str(),iPort);
+    string APPRS_Host_1=myList.getValue("APRS_IS_HOST_1");
+    string APPRS_Host_2=myList.getValue("APRS_IS_HOST_2");
+    string APPRS_Host_3=myList.getValue("APRS_IS_HOST_3");
+    string APPRS_Host_4=myList.getValue("APRS_IS_HOST_4");
+    printf("APRS_IS_HOST_1 is %s \nAPRS_IS_HOST_2 is %s \nAPRS_IS_HOST_3 is %s \nAPRS_IS_HOST_4 is %s \n LISTEN_UDP_PORT is %d \n",APPRS_Host_1.c_str(),APPRS_Host_2.c_str(),APPRS_Host_3.c_str(),APPRS_Host_4.c_str(),iPort);
     //Set the Port of Python App
     o_APRS.setPort(iPort);
     //ping the server  
+    /*
     if(o_APRS.APRS_ping(APPRS_Host)!=0){
         printf("APPRS could not be pinged !\n");
         sError="APPRS could not be pinged";
         return 1;
-    }
+    } */
     printf("Path to python app %s on Port %d \n", sPythonApp.c_str(),iPort);
     //Connect to Server and start the Python App
     if(o_APRS.startAPRS_Connector(sPythonApp.c_str())!=0){
@@ -185,7 +212,7 @@ int SetupGW(){
     //################    
     //give app time to start up 
     //and proot if it is still running
-    usleep(500000);
+    usleep(2500000); //Slow CPU's need Delay for wait to run Python
     //################   
     
     //is python app running
@@ -211,7 +238,7 @@ int SetupGW(){
     //so try again
     int iCount =0;
     int iReturn=1;
-    while(iCount <5){
+    while(iCount <150){
         usleep(1000000);
         iReturn=o_APRS.receiveUDP(c_Receiv,BufferSize);
         printf("Return in main from UDP: %d Try# %d:\n",iReturn,iCount+1);
@@ -250,7 +277,7 @@ int SetupGW(){
     if (strBME280.compare("TRUE") == 0){
         //if (o_Temp.setupBME280()!=0){
         if (setupBME280()!=0){
-            strBME280="False";
+            strBME280="FALSE";
             printf("Error BME280 Init!\n");
             sError="Error BME280 Init!";
             printf("BME280 %s\n",strBME280.c_str());
@@ -262,11 +289,16 @@ int SetupGW(){
 }
 
 void process_packets(){
+	char stat_timestamp[24];
+    time_t t;
     string receiveString="";
     //Receive packets and send to APRS
     if(o_HopeRF.receivepacket()==0){
         receiveString=o_HopeRF.getReceivePkt();
-        printf("Received %s \n",receiveString.c_str());
+        t = time(NULL);
+        strftime(stat_timestamp, sizeof stat_timestamp, "Rx: %F %T %Z", gmtime(&t));
+        printf("%s %s \n",stat_timestamp, receiveString.c_str());
+//        printf("Received %s \n",receiveString.c_str());
         //show in Menue if Packets is active
 	o_HMI.setbufferPacket(receiveString.c_str());
         if(Menue==3){
@@ -315,6 +347,7 @@ void showMenue(){
 
 void showConfig(){
     int Line=0;             //running Line Number
+    int Secondline=0;       //Line longer then MaxLineLen
     int NumbePages;         //Total Number of Pages      
     int preamble= 2;        //how many Lines before Config
     int NumLinesperPage=3;  //Lines to sho per Page
@@ -366,6 +399,12 @@ void showConfig(){
             o_HMI.showLine(Line,Result.c_str());
             Line++;
         }
+
+        Result=LATITUDE;
+        Result.append(" ");
+        Result.append(LONGITUDE);
+        o_HMI.showLine(Line,Result.c_str());
+        Line++;
     }
     
     
@@ -377,14 +416,24 @@ void showConfig(){
             //calc how many char to cut
             int diff= LenLine -20;
             if(diff >0){
-                Result=test.get_Param().substr(0, test.get_Param().length() - diff);
+                if(diff < 5) {
+                    Result=test.get_Param().substr(0, test.get_Param().length() - diff);
+                } else {
+                    Result=test.get_Param();
+                    Secondline=1;
+                }
             }else{
                 Result=test.get_Param();
             }
-            Result.append(" ");
-            Result.append(test.get_Value());
-            o_HMI.showLine(Line,Result.c_str());
-            Line++;
+            if(diff <= 20) {
+                Result.append(" ");
+                Result.append(test.get_Value());
+                o_HMI.showLine(Line,Result.c_str());
+                Line++;
+                if(Secondline){
+                    Line++;Secondline=0;
+                }
+            }
         }//end if
     }//end for   
 }
@@ -444,10 +493,38 @@ void showStatistic(){
         Result.append(double2string((float)APRS_packet));
         o_HMI.showLine(Line,Result.c_str());
         Line++;
-        Result="last Info from APRS";
+        Result="APRS_IS_HOST";
         o_HMI.showLine(Line,Result.c_str());
         Line++;
-        o_HMI.showLine(Line,sLTime.c_str());
+/*        string s_socket = "netstat -tn | grep ESTABLISHED | grep 14580  | awk '{ print $6 }'";
+//        string s_socket = "netstat -tn | grep 14580";
+        const string socket_Result = o_APRS.exec(s_socket.c_str());
+        int iFound =socket_Result.find("ESTABLISHED");
+        if (!iFound){
+            string s_socketip = "netstat -tn | grep ESTABLISHED | grep 14580  | awk '{ print $5 }'";
+            const string socketip_Result = o_APRS.exec(s_socketip.c_str());
+            //int iLen = socketip_Result.length();
+            //char dummy1[20],dummy2[20],dummy3[20],dummy4[20],dummy5[20],dummy6[20];
+            //sscanf(socket_Result.c_str(),"%s %s %s %s %s %s",dummy1,dummy2,dummy3,dummy4,dummy5,dummy6);
+            printf("APRS_IS = %s\n", socketip_Result.c_str());
+//            o_HMI.showLine(Line,dummy5);
+            o_HMI.showLine(Line,socketip_Result.c_str());
+        } else {
+            Result="Not Connected";
+            o_HMI.showLine(Line,Result.c_str());
+        } */
+//        o_HMI.showLine(Line,sLTime.c_str());
+//        string s_socketip = "lorapid=$(ps aux | grep Lora_APRS_gateway_6.py | grep root) && lora2pid=$(echo \"$lorapid\" | awk '{ print $2 }') && sudo netstat -tnp | grep $lora2pid | awk '{ print $5 }'";
+        string s_socketip = "./check_APRS_IS_connection";
+        const string socketip_Result = o_APRS.exec(s_socketip.c_str());
+        if(socketip_Result.length() >= 7) {
+            printf("APRS_IS = %s\n", socketip_Result.c_str());
+            o_HMI.showLine(Line,socketip_Result.c_str());
+        } else {
+            printf("APRS_IS = Not Connected\n");
+            o_HMI.showLine(Line,"Not Connected");
+        }
+        
     }else if (StatisticPage==5){
         char sTemp[100];
         sprintf(sTemp,"Temp:= %0.1fC \n",getTemp());
@@ -608,17 +685,43 @@ void showHMI(int Button){
 int main(int argc, char** argv) {
     int iButton=0;
     int iTempButton=0; //holder of Last pressed Button
-    int iTempMenue=0; //holder of Last pressed Menue
+    int iTempMenue=0;  //holder of Last pressed Menue
+    int not_sent=0;    //Telemetry settings
+    int count_tele=0;   //Telemetry Counter
 //    int iWasSleeping=0;
     printf("Hallo, iot4pi LoRa APRS Gateway starting...\n");
 
+    string last_socketip = "";
+
 //    time_t seconds; //Get Starting Time
-    time_t watch_python_sec; //Timer for python check intervall
+    time_t watch_stat_sec;    //Refresh Timer für Statisticseite 
+    time_t watch_python_sec;  //Timer for python check intervall
+    time_t watch_restart_sec; //Timer für CGI Befehle
+    time_t watch_connect_sec; //Timer für Verbindungsstatusanzeige
     time_t SecTempSend;
+    time_t t;
+
+    char sResultc[1024];
+
+
+    int fdc_out=open("/var/www/html/status.html", O_RDONLY,0644);
+    read(fdc_out,sResultc, sizeof(sResultc));
+//    fgets(sResultc,1024,fdc_out);
+//    printf("%s\n",sResultc);
+    close(fdc_out);
+    if(strstr(sResultc,"Not") == NULL) {
+        int fdc_out=open("/var/www/html/status.html", O_WRONLY|O_CREAT|O_TRUNC,0644);
+        strcpy(sResultc,"<HTML><HEAD><title>Lora-APRS I-Gate</title><meta http-equiv=\"refresh\" content=\"60; status.html\"></HEAD><BODY bgcolor=#A0A0A0><h3>Connection</h3> <p style=\"font-family:courier;\">");
+        write(fdc_out,sResultc,strlen(sResultc) );
+        strcpy(sResultc,"Not Connected</p><a href=\"status.html\">Refresh</a><br><a href=\"readuser.php\">Last Heard User</a><br><a href=\"index.html\">Mainpage</a></BODY></HTML>");
+        write(fdc_out,sResultc,strlen(sResultc) );
+        close(fdc_out);
+    }
+
 
     if(SetupGW()!=0){
         printf("Show Error at Startup= %s\n",showErrorAtStart.c_str());
-        if(showErrorAtStart.compare("True") == 0){
+        if(showErrorAtStart.compare("TRUE") == 0){
             printf("Waiting for User input\n");
             o_HMI.printError(sError);
             //################
@@ -626,7 +729,7 @@ int main(int argc, char** argv) {
             o_HMI.drawMenue(10,28,"Exit");
             o_HMI.drawMenue(70,40,"Resume");
             while(true){
-                iButton =o_HMI.readButton();
+                if(Menue != -1) iButton =o_HMI.readButton();
                 if(iButton==1){
                     o_HMI.printGoodby();
                     return 1;
@@ -637,72 +740,96 @@ int main(int argc, char** argv) {
         }
         //return 1; nicht abbrechen bei Startup Error
     }
-    watch_python_sec=time(NULL)+60;
+    watch_python_sec=time(NULL)+300;
+    watch_restart_sec=time(NULL)+15;
+    watch_connect_sec=time(NULL);
     o_HMI.printInfo("LoRa APRS GW         starting....");
     usleep(1000000);
-    showMenue();
+    switch(Menue) {
+        case 0:showMenue();break;
+        case 1:showConfig();break;
+        case 2:showStatistic();break;
+        case 3:showPackets();break;
+        default:showMenue();
+    }
+    iTempMenue=Menue;
     seconds = time(NULL)+OLED_timeout;
     SecTempSend= time(NULL)+TempSend;
     //Buffer for receiving
     //from UDP
-    int iReturn;
-    int BufferSize =256;
+    int iReturn,onetimerun=0;
+    int BufferSize =4096;
     char c_Receiv[BufferSize];
-    
+    char c_Framebuf[260];
+    char stat_timestamp[24];
+  
    
     while(1){
         process_packets();
-        iButton =o_HMI.readButton();
-        
+        if(Menue != -1) iButton =o_HMI.readButton();
         /////////////////////////////////////////
         //Read UDP if there are messages form APRS Server
         memset(c_Receiv, '\0', sizeof(c_Receiv));
         iReturn=o_APRS.receiveUDP(c_Receiv,BufferSize);
         if(iReturn==0){
             string sMessage(c_Receiv);
-            printf("Received from UDP ");
-            printf("%s\n",sMessage.c_str());
+            printf("Received from UDP %d %s\n",sMessage.length(),sMessage.c_str());
             
-            //Test CAD
-            ///////////////////////////////////////////
-            if (o_HopeRF.TxCarrierSense()!=0){
-                printf("Channel activ! Can't transmit !\n");
-                //Channel is not able to send 
-                // so set to Rx Channel again
-                if(o_HopeRF.setupHopeRF()!=0){
-                    printf("Error setting up HopeRF !\n");
-                    sError="Error setting up  HopeRF";
-                }                  
-           }else{
+            int x=0,y=0;
+            for(;;) {
+                while(c_Receiv[x] != 0 && c_Receiv[x] != '\r' && c_Receiv[x] != '\n') {
+                    c_Framebuf[y]=c_Receiv[x];
+                    x++;y++;
+                    c_Framebuf[y]=0;
+                }
+                //printf("Framelen %d %d\n",x,y);
+                if(y != 0 && y <= 256){  // Lora can max 256 Byte sending, max Message Length = 253 + 3 Byte Header
+            
+                    //Test CAD
+                    ///////////////////////////////////////////
+                    if (o_HopeRF.TxCarrierSense()!=0){
+                        printf("Channel activ! Can't transmit !\n");
+                        //Channel is not able to send 
+                        // so set to Rx Channel again
+                        if(o_HopeRF.setupHopeRF()!=0){
+                            printf("Error setting up HopeRF !\n");
+                            sError="Error setting up  HopeRF";
+                        }                  
+                   }else{
+                        //printf("Framesend\n");
+                        if(o_APRS.proofACK(c_Framebuf, strlen(c_Framebuf))){
+                            //With ACK
+                            //Configure HopeRf in Mode TX & Send Message
+                            //Set to Rx Channel again
+                            int ilen=strlen(c_Framebuf);
+                            printf("Sending paket with Ack %s \n",c_Framebuf);
+                            int i= o_HopeRF.TXSendPacket(c_Framebuf,ilen,1);
+                            if (i!=0) printf("Error sending payload !\n");
+                            if(o_HopeRF.setupHopeRF()!=0){
+                                printf("Error setting up HopeRF !\n");
+                                sError="Error setting up  HopeRF";
+                            }
 
-                if(o_APRS.proofACK(c_Receiv, strlen(c_Receiv))){
-                    //With ACK
-                    //Configure HopeRf in Mode TX & Send Message
-                    //Set to Rx Channel again
-                    int ilen=strlen(c_Receiv);
-                    printf("Sending paket with Ack %s \n",c_Receiv);
-                    int i= o_HopeRF.TXSendPacket(c_Receiv,ilen,1);
-                    if (i!=0) printf("Error sending payload !\n");
-                    if(o_HopeRF.setupHopeRF()!=0){
-                        printf("Error setting up HopeRF !\n");
-                        sError="Error setting up  HopeRF";
-                    }
-
-                }else{
-                    //No ACK
-                    //Configure HopeRf in Mode TX & Send Message
-                    //Set to Rx Channel again
-                    int ilen=strlen(c_Receiv);
-                    printf("Sending paket without Ack %s \n",c_Receiv);
-                    int i= o_HopeRF.TXSendPacket(c_Receiv,ilen);
-                    if (i!=0) printf("Error sending payload !\n");
-                    if(o_HopeRF.setupHopeRF()!=0){
-                        printf("Error setting up HopeRF !\n");
-                        sError="Error setting up  HopeRF";
-                    }
-                }   
-            }//end If CarrierSense
+                        }else{
+                            //No ACK
+                            //Configure HopeRf in Mode TX & Send Message
+                            //Set to Rx Channel again
+                            int ilen=strlen(c_Framebuf);
+                            printf("Sending paket without Ack %s \n",c_Framebuf);
+                            int i= o_HopeRF.TXSendPacket(c_Framebuf,ilen);
+                            if (i!=0) printf("Error sending payload !\n");
+                            if(o_HopeRF.setupHopeRF()!=0){
+                                printf("Error setting up HopeRF !\n");
+                                sError="Error setting up  HopeRF";
+                            }
+                        }   
+                    }//end If CarrierSense
             /////////////////////////////////////// 
+                } //End if < 265
+                y=0;
+                if(c_Receiv[x] == 0) break;
+                x++;
+            } //End For
         
         }//end if UDP Received
 
@@ -729,10 +856,19 @@ int main(int argc, char** argv) {
             }
             iWasSleeping=0;
         }else{ 
-            if(seconds<=time(NULL)){
+            if(seconds<=time(NULL) && !iWasSleeping){
                 o_HMI.clearDisplay();
                 iWasSleeping=1;
                 //printf("Timer elapsed...\n");
+            }
+        }
+
+        if(Menue==2) {
+            if(watch_stat_sec<=time(NULL)){
+                watch_stat_sec=time(NULL)+OLED_timeout-1;
+                seconds = time(NULL)+OLED_timeout;
+                iWasSleeping=0;
+                showStatistic();
             }
         }
 
@@ -744,28 +880,119 @@ int main(int argc, char** argv) {
                 sError="APRS Connector not running";
                 return 1;  // Programm abbrechen systemd macht restart
             }
-            //is socket activ (Port 14580)
-            if(o_APRS.socket_activ()!=0){
+            //is socket activ APRS_IS TCP
+/*            if(o_APRS.socket_activ()!=0){
                 printf("APRS Socket not established!\n");
                 sError="APRS Socket not established";
                 return 1;  // Programm abbrechen systemd macht restart
-            }
+            } */
+        }
+
+        if(watch_restart_sec<=time(NULL)){
+               watch_restart_sec=time(NULL)+15;
+               if(o_APRS.restart_request()!=0){
+                   printf("Restart from CGI!\n");
+                   sError="Restart from CGI";
+                   return 1;  // Programm abbrechen systemd macht restart
+               }
+               if(o_APRS.reboot_request()!=0){
+                   printf("Reboot from CGI!\n");
+                   sError="Reboot from CGI";
+                   return 1;  // Programm abbrechen Reboot
+               }
+        }
+
+        if(watch_connect_sec<=time(NULL)){
+               watch_connect_sec=time(NULL)+60;
+                string s_socketip = "./check_APRS_IS_connection";
+                const string socketip_Result = o_APRS.exec(s_socketip.c_str());
+                char aprs_state[100];
+                char ipResult[100];
+                char sResultc[1000];
+                t = time(NULL);
+                strftime(stat_timestamp, sizeof stat_timestamp, "%F %R", gmtime(&t));
+//                printf("APRS_IS: %s Length %d\n",socketip_Result.c_str(),socketip_Result.length());
+                if(socketip_Result.compare(last_socketip) || socketip_Result.length() != last_socketip.length() || socketip_Result.length() == 0 ) {    //only changing write to file
+                    int notconnected = 0;
+                    last_socketip = socketip_Result;
+                    if(socketip_Result.length() >= 7) {
+    //                    printf("APRS_IS = %s\n", socketip_Result.c_str());
+                        sprintf(ipResult,"Connected since %s UTC to APRS_IS %s",stat_timestamp,socketip_Result.c_str());
+                        strcpy(aprs_state,socketip_Result.c_str());
+                        strtok(aprs_state,":");
+                    } else {
+                        sprintf(ipResult,"Not Connected since %s UTC",stat_timestamp);
+                        strcpy(aprs_state,"");
+                        notconnected = 1;
+                    }
+                    int fdc_out=open("/var/www/html/status.html", O_WRONLY|O_CREAT|O_TRUNC,0644);
+                    strcpy(sResultc,"<HTML><HEAD><title>Lora-APRS I-Gate</title><meta http-equiv=\"refresh\" content=\"60; status.html\"></HEAD><BODY bgcolor=#A0A0A0><h3>Connection</h3> <p style=\"font-family:courier;\">");
+                    write(fdc_out,sResultc,strlen(sResultc) );
+                    if(strlen(aprs_state)) 
+                        sprintf(sResultc,"%s<a href=\"http://%s:14501\" target=\"_blank\" >Show Dashboard</a><BR>",ipResult,aprs_state);
+                    else
+                        sprintf(sResultc,"%s<BR>",ipResult);
+                    write(fdc_out,sResultc,strlen(sResultc) );
+                    strcpy(sResultc,"</p><a href=\"status.html\">Refresh</a><br><a href=\"readuser.php\">Last Heard User</a><br><a href=\"index.html\">Mainpage</a></BODY></HTML>");
+                    write(fdc_out,sResultc,strlen(sResultc) );
+                    close(fdc_out);
+                    if(notconnected) {
+                        printf("Restart Service, because not connected!\n");
+                        return 1;
+                    }
+                }
         }
 
 
         //#####################################
         //BME280 
         if (strBME280.compare("TRUE") == 0){
-              readBME280();
+            readBME280();
               ///send Temp Pressure Huminity to Python Script
-              if (SecTempSend<=time(NULL)){
+            if (SecTempSend<=time(NULL)){
                 printf("Send TempHuminityPressure\n");
                 SecTempSend= time(NULL)+TempSend;
-                
-                char sResult[100];
+                char sResult[1200];
                 sprintf(sResult,"Temp:%0.1fC Pressure:%0.1fhPa Humidity:%0.1f%%\n",getTemp(),(getPressure()/100),getHuminity());
                 o_APRS.sendudp(sResult,strlen(sResult));
-              }
+                t = time(NULL);
+                strftime(stat_timestamp, sizeof stat_timestamp, "%02d%02H%02M", gmtime(&t));
+                sprintf(sResult,"%s>APOTW1,TCPIP*:@%sz%s/%s_.../...g...t%03dr...p...P...h%02db%05dBME280",APRS_IS_CALL.c_str(),stat_timestamp,LATITUDE.c_str(),LONGITUDE.c_str(),getTempWx(),getHuminityWx(),getPressureWx());
+                o_APRS.sendudp(sResult,strlen(sResult));
+                if(!not_sent) {
+                    not_sent = 1;
+                    sprintf(sResult,"%s>APOTW1,TCPIP*::%-9s:%s",APRS_IS_CALL.c_str(),APRS_IS_CALL.c_str(),PARM.c_str());
+                    o_APRS.sendudp(sResult,strlen(sResult));
+                    sprintf(sResult,"%s>APOTW1,TCPIP*::%-9s:%s",APRS_IS_CALL.c_str(),APRS_IS_CALL.c_str(),UNIT.c_str());
+                    o_APRS.sendudp(sResult,strlen(sResult));
+                    sprintf(sResult,"%s>APOTW1,TCPIP*::%-9s:%s",APRS_IS_CALL.c_str(),APRS_IS_CALL.c_str(),EQNS.c_str());
+                    o_APRS.sendudp(sResult,strlen(sResult));
+                    sprintf(sResult,"%s>APOTW1,TCPIP*::%-9s:%s",APRS_IS_CALL.c_str(),APRS_IS_CALL.c_str(),BITS.c_str());
+                    o_APRS.sendudp(sResult,strlen(sResult));
+                }
+                sprintf(sResult,"%s>APOTW1,TCPIP*:T#%03d,%03d,%03d,%03d,000,000,00000000",APRS_IS_CALL.c_str(),count_tele,getTempTele(),getPressureTele(),getHuminityTele());
+                if(++count_tele > 999) count_tele=0;
+                o_APRS.sendudp(sResult,strlen(sResult));
+                strftime(stat_timestamp, sizeof stat_timestamp, "%F %R", gmtime(&t));
+                sprintf(sResult,"<HTML><HEAD><title>Lora-APRS I-Gate</title><meta http-equiv=\"refresh\" content=\"60; weather.html\"></HEAD><BODY bgcolor=#A0A0A0><h3>BME280 Weather (5min)</h3> <p style=\"font-family:courier;\"> UTC %s<BR>Temp:%0.1fC<BR>Pressure:%0.1fhPa<BR>Humidity:%0.1f%%<BR><br></p><a href=\"weather.html\">Refresh</a><br><a href=\"readuser.php\">Last Heard User</a><br><a href=\"index.html\">Mainpage</a></BODY></HTML>",stat_timestamp,getTemp(),(getPressure()/100),getHuminity());
+
+                int fd_out=open("/var/www/html/weather.html", O_WRONLY|O_CREAT|O_TRUNC,0644);
+                write(fd_out,sResult,strlen(sResult) );
+                close(fd_out);
+
+            }
+        } else {
+            if(!onetimerun) {
+                onetimerun = 1;
+                char sResult[1200];
+                //strftime(stat_timestamp, sizeof stat_timestamp, "%02H:%02M", gmtime(&t));
+                sprintf(sResult,"<HTML><HEAD><title>Lora-APRS I-Gate</title><meta http-equiv=\"refresh\" content=\"60; weather.html\"></HEAD><BODY bgcolor=#A0A0A0><h3>BME280 disabled</h3> <p style=\"font-family:courier;\"><BR></p><a href=\"weather.html\">Refresh</a><br><a href=\"readuser.php\">Last Heard User</a><br><a href=\"index.html\">Mainpage</a></BODY></HTML>");
+
+                int fd_out=open("/var/www/html/weather.html", O_WRONLY|O_CREAT|O_TRUNC,0644);
+                write(fd_out,sResult,strlen(sResult) );
+                close(fd_out);
+            }
+        
         }
         
 

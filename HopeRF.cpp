@@ -22,6 +22,7 @@ HopeRF::HopeRF() {
     m_bSF=0x00;     
     m_bBW=0x00;
     m_bCR=0x00;
+    m_snr=0;
     cp_nb_rx_rcv=0;
     cp_nb_rx_ok=0;
     cp_nb_rx_bad=0;
@@ -253,7 +254,7 @@ int HopeRF::TxCarrierSense(){
  0  success
  -1 failure
  */
-int HopeRF::setParam(uint32_t RxFrequ,uint32_t TxFrequ,int SF, double BW,int CR){
+int HopeRF::setParam(uint32_t RxFrequ,uint32_t TxFrequ,int SF, double BW,int CR, int SNR){
     int iReturn =0;
     if(RxFrequ<400000000 || RxFrequ>999000000){
         return -1;
@@ -331,6 +332,8 @@ int HopeRF::setParam(uint32_t RxFrequ,uint32_t TxFrequ,int SF, double BW,int CR)
     m_sf=SF;
     m_bw=BW;
     m_cr=CR;
+
+    m_snr=SNR;
     
     return iReturn;
 }
@@ -352,8 +355,8 @@ int HopeRF::receivepacket(){
     //@APA Test if Receive IRQ 
     int irqTest = readRegister(REG_IRQ_FLAGS);
     if(irqTest & 0x40){
-        printf("Receive IRQ read !\n");
-        printf("IRQ in receivepacket: 0x%x\n",irqTest);
+//        printf("Receive IRQ read !\n");
+//        printf("IRQ in receivepacket: 0x%x\n",irqTest);
         cp_nb_rx_rcv++;
         if(receivePkt(message)) {
 
@@ -390,15 +393,15 @@ int HopeRF::receivepacket(){
                 // Divide by 4
                 SNR = ( value & 0xFF ) >> 2;
             }
-            
-            printf("Debug Print payload\n");
+
+/*            printf("Debug Print payload\n");
             printf(message);
             printf("\n");
-            
+*/
             /* get timestamp for statistics */
             t = time(NULL);
             strftime(stat_timestamp, sizeof stat_timestamp, "%F %T %Z", gmtime(&t));
-            printf("Time: %s,\n ",stat_timestamp);
+            printf("Time: %s\n",stat_timestamp);
 
             byte lora_PacketSNR=readRegister(0x1A)-rssicorr;
             printf("Packet RSSI: %d, ",lora_PacketSNR);
@@ -426,26 +429,27 @@ int HopeRF::receivepacket(){
             }
             //////////////////
             // Get Packet Type
-            // IoT4Pi3>APRS:!/641pRXYW>@[Q  --> Position Packet     --> Type 0
-            // IoT4Pi3>APRS::IoT4Pi3  :ack2  --> Ack from Message   --> Type 1
-            int m_Type;
-            for(uint8_t x=0;x<strlen(tempstring);x++){
-                if(tempstring[x]==':'){
-                    if(tempstring[x+1]=='!'){
-                        m_Type=0;
-                        break;
-                    }else if(tempstring[x+1]==':'){
-                        m_Type=1;
-                        break;
+            // IoT4Pi3>APRS:!/641pRXYW>@[Q  --> Position Packet     --> Type 1
+            // IoT4Pi3>APRS::IoT4Pi3  :ack2  --> Ack from Message   --> Type 0
+            int m_Type=0;
+            if(m_snr) {
+                for(uint8_t x=3;x<strlen(tempstring);x++){
+                    if(tempstring[x]==':'){
+                        if(tempstring[x+1]=='!'){
+                            m_Type=1;
+                            break;
+                        } /*else if(tempstring[x+1]==':'){
+                            m_Type=1;
+                            break;
+                        } */
                     }
-                }
-            }//end for
-
+                }//end for
+            }
             //printf("-----Temp Output tempstring = %s\n",tempstring);
             outString=tempstring;
 
-            if (m_Type == 0){
-                printf(" Packet Type 0 \n");
+            if (m_Type == 1){
+                printf("Packet Type 1 \n");
                 //printf("-----Temp Output String = %s\n",outString.c_str());
                 outString += " SNR="; 
 
@@ -460,9 +464,9 @@ int HopeRF::receivepacket(){
                 outString += double2string(iRSSI);
                 outString += ("db");
 
-            }else if (m_Type == 1){
-                printf(" Packet Type 1 \n");
-            }
+            } /* else if (m_Type == 1){
+                printf("Packet Type 1 \n");
+            }*/
 
             
             
@@ -520,7 +524,7 @@ int HopeRF::TXSendPacket(char* buffer, int size,int Ack){
     printf("Sending Message...len =%d | size=%d |",sizeof(Message),size);
 
 
-    for(uint8_t i = 0; i < size+3; i++)
+    for(int i = 0; i < size+3; i++)  //Bug war auf uint8_t
     {
         writeRegister(REG_FIFO,Message[i]);  // Writing the payload in FIFO
         printf("%c",Message[i]);
@@ -534,7 +538,7 @@ int HopeRF::TXSendPacket(char* buffer, int size,int Ack){
 
     int value = readRegister(REG_PAYLOAD_LENGTH);
     if (value != size+3){
-        printf("Error writing payload to HopeRF !\n");
+        printf("Error writing payloadsize %d to HopeRF!\n",value);
         // Getting back to previous status
 	    writeRegister(REG_OPMODE,st0);
         return 1;
@@ -816,23 +820,23 @@ Somit die Vermutung, dass man sich dadurch auch den PayloadCrcError zerstört  ?
     // clear rxDone
     //writeRegister(REG_IRQ_FLAGS, 0x40);
     int irqflags = readRegister(REG_IRQ_FLAGS);
-    printf("IRQ in receivePkt: 0x%x\n",irqflags);
-    long int SNR=0;
-    int hop_channel=readRegister(REG_HOP_CHANNEL);
-    printf("Hop_channel: 0x%x\n",hop_channel);
+//    printf("IRQ in receivePkt: 0x%x\n",irqflags);
+//    long int SNR=0;
+//    int hop_channel=readRegister(REG_HOP_CHANNEL);
+//    printf("Hop_channel: 0x%x\n",hop_channel);
     byte value = readRegister(REG_PKT_SNR_VALUE);
     if( value & 0x80 ) // The SNR sign bit is 1
     {
         // Invert and divide by 4
         value = ( ( ~value + 1 ) & 0xFF ) >> 2;
-        SNR = -value;
+//        SNR = -value;
     }
     else
     {
         // Divide by 4
-        SNR = ( value & 0xFF ) >> 2;
+//        SNR = ( value & 0xFF ) >> 2;
     }
-    printf("SNR: %li, \n",SNR);
+//    printf("SNR: %li, \n",SNR);
 ///////////////DEBUG END
 
 
@@ -841,7 +845,7 @@ Somit die Vermutung, dass man sich dadurch auch den PayloadCrcError zerstört  ?
     //  payload crc: 0x20
     if((irqflags & 0x20) == 0x20)
     {
-        printf("CRC error\n");
+//        printf("CRC error\n");
         //@APA Set Flags again
         writeRegister(REG_IRQ_FLAGS, 0xFF);
         return 0;

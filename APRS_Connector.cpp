@@ -163,7 +163,7 @@ int APRS_Connector::startAPRS_Connector(string PythonApp) {
         if(a < 0){
             iReturn=-1;
         }else{
-            //printf("APRS Connector started\n");
+            printf("APRS Connector started %d\n",a);
             iReturn = 0;
         }
     } catch (...) {
@@ -204,7 +204,14 @@ int APRS_Connector::process_activ(){
  */
 int APRS_Connector::socket_activ(){
     int iReturn=-1;
-    string s_socket = "netstat -tn | grep 14580  | awk '{ print $6 }'";
+
+    string s_socketip = "./check_APRS_IS_connection";
+    const string socketip_Result = exec(s_socketip.c_str());
+    if(socketip_Result.length() >= 7) {
+        iReturn = 0;
+    } 
+
+/*    string s_socket = "netstat -tn | grep 14580  | awk '{ print $6 }'";
     const string socket_Result = exec(s_socket.c_str());
 //    int iLen = socket_Result.length();
 //    printf("socket Result = %s %d\n", socket_Result.c_str(), iLen);
@@ -213,6 +220,53 @@ int APRS_Connector::socket_activ(){
 //    printf("Found %d\n",iFound);
     if (!iFound){
         iReturn = 0;
+    } */
+
+    return iReturn;
+}
+
+/*is  Aprs Connector restart Request
+ * Return
+  0  success
+ -1  failure
+ */
+int APRS_Connector::restart_request(){
+    int iReturn=0;
+    string s_socket = "if [ -e /var/www/html/requests/restart.req ] ; then echo restart; fi";
+    const string socket_Result = exec(s_socket.c_str());
+//    int iLen = socket_Result.length();
+//    printf("socket Result = %s %d\n", socket_Result.c_str(), iLen);
+//    printf("Path search process = %s\n",m_Path.substr(0,m_Path.length()-2).c_str());
+    int iFound =socket_Result.find("restart");
+//    printf("Found %d\n",iFound);
+    if (!iFound){
+        printf("Restart Service\n");
+        exec("sudo rm -f /var/www/html/requests/restart.req");
+        exec("sudo service iot4pi_start restart");
+        iReturn = -1;
+    }
+    return iReturn;
+}
+
+/*is  Aprs Connector restart Request
+ * Return
+  0  success
+ -1  failure
+ */
+int APRS_Connector::reboot_request(){
+    int iReturn=0;
+    string s_socket = "if [ -e /var/www/html/requests/reboot.req ] ; then echo reboot; fi";
+    const string socket_Result = exec(s_socket.c_str());
+//    int iLen = socket_Result.length();
+//    printf("socket Result = %s %d\n", socket_Result.c_str(), iLen);
+//    printf("Path search process = %s\n",m_Path.substr(0,m_Path.length()-2).c_str());
+    int iFound =socket_Result.find("reboot");
+//    printf("Found %d\n",iFound);
+    if (!iFound){
+        printf("Reboot\n");
+        exec("sudo rm -f /var/www/html/requests/reboot.req");
+        exec("sudo reboot");
+        iReturn = -1;
     }
     return iReturn;
 }

@@ -99,7 +99,7 @@ public:
     HopeRF();
     HopeRF(const HopeRF& orig);
     virtual ~HopeRF();
-    int setParam(uint32_t RxFrequ,uint32_t TxFrequ,int SF, double BW, int CR);
+    int setParam(uint32_t RxFrequ,uint32_t TxFrequ,int SF, double BW, int CR, int SNR);
     int setupHopeRF();
     int setupTxHopeRF();
     int TxCarrierSense();
@@ -121,6 +121,7 @@ private:
     byte m_bSF;     
     byte m_bBW;
     byte m_bCR;
+    int m_snr;
     uint32_t cp_nb_rx_rcv;
     uint32_t cp_nb_rx_ok;
     uint32_t cp_nb_rx_bad;
