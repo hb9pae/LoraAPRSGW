@@ -1,4 +1,11 @@
 # LoraAPRSGW
+
+2022-06  hb9pae
+Code forked from OE5PON/LoraAPRSGW
+Tagged as V0.1
+------------------
+
+
 LoRa APRS Gateway (Sascha's iot4pi version) 
 
 Many thanks Sascha for providing us a copy of the LoRa-APRS Gateway code!  
