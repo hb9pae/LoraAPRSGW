@@ -1,0 +1,33 @@
+#!/bin/bash
+
+LOGFILE="/var/log/iot4pi/LogAPRS.txt"
+
+STATE_1="error";
+STATE_2="error";
+STATE_3="error";
+STATE_4="error";
+
+APRS_HOST_1=`grep ^APRS_IS_HOST_1= APRS.conf | cut -f2 -d"="`
+APRS_HOST_2=`grep ^APRS_IS_HOST_2= APRS.conf | cut -f2 -d"="`
+APRS_HOST_3=`grep ^APRS_IS_HOST_3= APRS.conf | cut -f2 -d"="`
+APRS_HOST_4=`grep ^APRS_IS_HOST_4= APRS.conf | cut -f2 -d"="`
+
+# while no Ping is ok loop
+while [ $STATE_1 = "error" ] && [ $STATE_2 = "error" ] && [ $STATE_3 = "error" ] && [ $STATE_4 = "error" ]
+do
+    STATE_1=$(ping -q -w 5 -c 1 -s 1 $APRS_HOST_1 > /dev/null && echo ok || echo error)
+    STATE_2=$(ping -q -w 5 -c 1 -s 1 $APRS_HOST_2 > /dev/null && echo ok || echo error)
+    STATE_3=$(ping -q -w 5 -c 1 -s 1 $APRS_HOST_3 > /dev/null && echo ok || echo error)
+    STATE_4=$(ping -q -w 5 -c 1 -s 1 $APRS_HOST_4 > /dev/null && echo ok || echo error)
+#if no ping ok the wait 60s
+    if [ $STATE_1 = "error" ] && [ $STATE_2 = "error" ] && [ $STATE_3 = "error" ] && [ $STATE_4 = "error" ]
+    then
+        sleep 60
+    fi
+done
+#Print result to logfile
+echo APRS_IS_1 Ping $STATE_1 >> $LOGFILE
+echo APRS_IS_2 Ping $STATE_2 >> $LOGFILE
+echo APRS_IS_3 Ping $STATE_3 >> $LOGFILE
+echo APRS_IS_4 Ping $STATE_4 >> $LOGFILE
+
