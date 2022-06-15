@@ -1,0 +1,16 @@
+[Unit]
+Description=LoraAPRS-GW Service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi/LoraAPRSGW
+ExecStart=/home/pi/LoraAPRSGW/LoraAPRS_Start.sh 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+
