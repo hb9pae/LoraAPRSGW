@@ -48,14 +48,14 @@ Aktiviere I2C und SPI Interface
 - Starte die Applikation	  (sudo systemctl start loraaprs.service)
 
 # History
+## 2022-06-16 hb9pae
+Installationsanleitung ergänzt
+
 ## 2022-06-15 hb9pae
 - Ergänzung Code zur Korrektur des abs. Luftdruckes auf Normalnull (Meereshöhe) 
 - Neuer Parameter "ALTUTUDE=xxx" in Position.conf
 - Startprozess via Systemd angepasst.
 - Ausgabe Versionsstring beim Start 
-
-## 2022-06-16 hb9pae
-Installationsanleitung ergänzt
 
 ## 2022-06-15 hb9pae
 Tagged as V 0.7
