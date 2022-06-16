@@ -9,7 +9,11 @@
  * Author: paulalexander66
  *
  * Created on 10. Mai 2017, 14:54
- */
+
+# Code modified hb9pae@gmail.com
+# 2022-06-15
+
+*/
 
 #include <cstdlib>
 #include <stdio.h>
@@ -29,8 +33,9 @@ extern "C"
 
 using namespace std;
 
+string sVersion="V0.7, hb9pae"; 
 string sConfig="./APRS.conf";
-string sPosconf="./position.conf";
+string sPosconf="./Position.conf";
 string sPythonApp="Lora_APRS_gateway_6.py";
 //string sConfig="/home/pi/iot4pi/APRS.conf";
 //string sPythonApp="/home/pi/iot4pi/Lora_APRS_gateway_6.py";
@@ -50,6 +55,7 @@ string wlan0;
 int ConfigPage=1; //which page is showing
 int StatisticPage=1; //which page is showing
 string showErrorAtStart="TRUE";
+int ALTITUDE;
 
 //Hf Parameter
 uint32_t RxFrequ;
@@ -119,7 +125,9 @@ int SetupGW(){
         return 1;
     }
 
+    
     APRS_IS_CALL=myList.getValue("APRS_IS_CALL");
+
     showErrorAtStart=myList.getValue("ShowErrorAtStart");
     LATITUDE=posList.getValue("LATITUDE");
     LONGITUDE=posList.getValue("LONGITUDE");
@@ -128,6 +136,10 @@ int SetupGW(){
         temp.append(LONGITUDE);
         LONGITUDE = temp;
     }
+
+    string Temp_ALT=posList.getValue("ALTITUDE");
+    ALTITUDE=atoi(Temp_ALT.c_str());
+
     PARM=myList.getValue("PARM");
     UNIT=myList.getValue("UNIT");
     EQNS=myList.getValue("EQNS");
@@ -496,25 +508,6 @@ void showStatistic(){
         Result="APRS_IS_HOST";
         o_HMI.showLine(Line,Result.c_str());
         Line++;
-/*        string s_socket = "netstat -tn | grep ESTABLISHED | grep 14580  | awk '{ print $6 }'";
-//        string s_socket = "netstat -tn | grep 14580";
-        const string socket_Result = o_APRS.exec(s_socket.c_str());
-        int iFound =socket_Result.find("ESTABLISHED");
-        if (!iFound){
-            string s_socketip = "netstat -tn | grep ESTABLISHED | grep 14580  | awk '{ print $5 }'";
-            const string socketip_Result = o_APRS.exec(s_socketip.c_str());
-            //int iLen = socketip_Result.length();
-            //char dummy1[20],dummy2[20],dummy3[20],dummy4[20],dummy5[20],dummy6[20];
-            //sscanf(socket_Result.c_str(),"%s %s %s %s %s %s",dummy1,dummy2,dummy3,dummy4,dummy5,dummy6);
-            printf("APRS_IS = %s\n", socketip_Result.c_str());
-//            o_HMI.showLine(Line,dummy5);
-            o_HMI.showLine(Line,socketip_Result.c_str());
-        } else {
-            Result="Not Connected";
-            o_HMI.showLine(Line,Result.c_str());
-        } */
-//        o_HMI.showLine(Line,sLTime.c_str());
-//        string s_socketip = "lorapid=$(ps aux | grep Lora_APRS_gateway_6.py | grep root) && lora2pid=$(echo \"$lorapid\" | awk '{ print $2 }') && sudo netstat -tnp | grep $lora2pid | awk '{ print $5 }'";
         string s_socketip = "./check_APRS_IS_connection";
         const string socketip_Result = o_APRS.exec(s_socketip.c_str());
         if(socketip_Result.length() >= 7) {
@@ -690,6 +683,7 @@ int main(int argc, char** argv) {
     int count_tele=0;   //Telemetry Counter
 //    int iWasSleeping=0;
     printf("Hallo, iot4pi LoRa APRS Gateway starting...\n");
+    printf("Version: %s\n",sVersion.c_str());
 
     string last_socketip = "";
 
@@ -701,8 +695,8 @@ int main(int argc, char** argv) {
     time_t SecTempSend;
     time_t t;
 
+/* hb9pae no statisticfile
     char sResultc[1024];
-
 
     int fdc_out=open("/var/www/html/status.html", O_RDONLY,0644);
     read(fdc_out,sResultc, sizeof(sResultc));
@@ -717,7 +711,7 @@ int main(int argc, char** argv) {
         write(fdc_out,sResultc,strlen(sResultc) );
         close(fdc_out);
     }
-
+*/
 
     if(SetupGW()!=0){
         printf("Show Error at Startup= %s\n",showErrorAtStart.c_str());

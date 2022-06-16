@@ -1,5 +1,6 @@
 
 #include "TempPressHum.h"
+#include "math.h"
 
 //////////////////////////////////////////////
 //C Functions needed to get function pointers right for bme280.h
@@ -10,6 +11,8 @@ float dHuminity=0;
 struct bme280_dev dev;
 int8_t rslt = BME280_OK;
 char sI2C_Dev[15]="/dev/i2c-1";
+
+int ALTITUDE;
 
 int8_t user_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
@@ -99,8 +102,14 @@ int8_t readBME280(){
               usleep(40000);
               rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, &dev);
               dTemp=comp_data.temperature;
-              dPressure=comp_data.pressure;
+//              dPressure=comp_data.pressure;
               dHuminity=comp_data.humidity;
+
+              dPressure = (((comp_data.pressure * 100.0)/pow((1-((float)(ALTITUDE))/44330), 5.255))/100.0);  
+//	      printf("Abs Pressure: %0.2f, Rel Pressure %0.2f", dPressure, comp_data.pressure);
+
+//  SLpressure_mB = (((pressure * 100.0)/pow((1-((float)(ELEVATION))/44330), 5.255))/100.0)  
+             
 /*
               printf("Temperature, Pressure, Humidity\r\n");
     #ifdef BME280_FLOAT_ENABLE

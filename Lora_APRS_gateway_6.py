@@ -16,7 +16,7 @@ import pdb
 
 #Path to config File
 strPath="APRS.conf"
-strPosPath="position.conf"
+strPosPath="Position.conf"
 bDebug=True
 
 # Configure this part with your call and APRS-IS passcode

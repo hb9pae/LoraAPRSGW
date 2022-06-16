@@ -2,10 +2,10 @@ CC=arm-linux-gnueabihf-g++
 CFLAGS=-c -Wall
 LIBS=-lwiringPi -lArduiPi_OLED
 
-all: iot4pi_LoraGW_01
+all: LoraAPRS
 
-iot4pi_LoraGW_01:  main.o APRS_Connector.o ConfigParam.o ParamList.o HopeRF.o HMI.o TempPressHum.o bme280.o
-	$(CC) main.o  APRS_Connector.o ConfigParam.o  ParamList.o HopeRF.o HMI.o TempPressHum.o bme280.o $(LIBS) -o iot4pi_LoraGW_01
+LoraAPRS:  main.o APRS_Connector.o ConfigParam.o ParamList.o HopeRF.o HMI.o TempPressHum.o bme280.o
+	$(CC) main.o  APRS_Connector.o ConfigParam.o  ParamList.o HopeRF.o HMI.o TempPressHum.o bme280.o $(LIBS) -o LoraAPRS
 
 main.o: main.cpp ParamList.h APRS_Connector.h HopeRF.h TempPressHum.h
 	$(CC) $(CFLAGS) main.cpp
