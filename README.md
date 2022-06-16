@@ -9,7 +9,8 @@ die effiziente Übertragung von Daten mit geringer Leistung über grosse Distanz
 In dieser Anwendung werden GPS-Positionsdaten, zusammen mit einem APRS-Symbol und Sensordaten (Temperatur, 
 Luftdruck und Luftfeuchtigkeit) an den APRS-IS Server (Automatic Packet Reporting System-Internet Service) übermittelt. 
 
-Grundlage dieses Projektes diente die Webseite «http://www.iot4pi.com/de/hardware/lora-gateway/».  
+Grundlage dieses Projektes diente die Webseite http://www.iot4pi.com/de/hardware/lora-gateway/.  
+
 ----------------------------------
 
 ## Code Aufbau
