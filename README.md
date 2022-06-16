@@ -32,7 +32,7 @@ Installiere den OLED-Driver
 - cd ArduinoPI_OLED
 - sudo make
 
-Aktivierte I2C und SPI Interface
+Aktiviere I2C und SPI Interface
 - Enable I2C und SPI  (sudo raspi-config, Interface Options)
 - Reboot RPI (sudo reboot)
 
