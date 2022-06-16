@@ -1,5 +1,5 @@
 # LoraAPRSGW
-2022-06-15, hb9pae
+2022-06-16, hb9pae
 
 
 ## Allgemeines
@@ -22,7 +22,22 @@ Die Applikation LoraAPRSGW besteht aus folgenden Programmteilen:
 
 - loraprs.service	Systemd Steuerdaten  (/etc/systemd/system/)
 
+
+Installiere folgende Libs
+- sudo apt install libi2c-dev 
+- sudo apt install screen 
+
+Installiere den OLED-Driver
+- git clone https://github.com/hallard/ArduiPi_OLED 
+- cd ArduinoPI_OLED
+- sudo make
+
+Aktivierte I2C und SPI Interface
+- Enable I2C und SPI  (sudo raspi-config, Interface Options)
+- Reboot RPI (sudo reboot)
+
 ## Build-Process
+- cd /home/pi/LoraAPRSGW
 - make clean
 - make 
 
@@ -38,6 +53,9 @@ Die Applikation LoraAPRSGW besteht aus folgenden Programmteilen:
 - Neuer Parameter "ALTUTUDE=xxx" in Position.conf
 - Startprozess via Systemd angepasst.
 - Ausgabe Versionsstring beim Start 
+
+## 2022-06-16 hb9pae
+Installationsanleitung ergänzt
 
 ## 2022-06-15 hb9pae
 Tagged as V 0.7
