@@ -34,7 +34,7 @@ Die Applikation LoraAPRSGW besteht aus folgenden Programmteilen:
 # History
 ## 2022-06-15 hb9pae
 - Ergänzung Code zur Korrektur des abs. Luftdruckes auf Normalnull (Meereshöhe) 
-- Neuer Parameter "ALTUTUDE=xxx" in position.conf
+- Neuer Parameter "ALTUTUDE=xxx" in Position.conf
 - Startprozess via Systemd angepasst.
 - Ausgabe Versionsstring beim Start 
 
