@@ -44,6 +44,7 @@ Aktiviere I2C und SPI Interface
 ## Installation
 - Kompiliere und Linke den Code (Build-Process)
 - Kopiere das Systemd-Startdatei  (sudo cp Systemd/loraaprs.service /etc/systemd/system)
+				  (sudo cp Systemd/loraaprs.timer /etc/systemd/system)
 - Enable die Sytemd-Startdatei	  (sudo systemctl enable loraaprs.service)
 - Starte die Applikation	  (sudo systemctl start loraaprs.service)
 
