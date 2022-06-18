@@ -1,0 +1,11 @@
+[Unit]
+Description=LoraAPRS-GW Service
+
+[Timer]
+OnBootSec=2min
+
+[Install]
+WantedBy=multi-user.target
+
+
+
