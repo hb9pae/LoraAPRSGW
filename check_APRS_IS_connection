@@ -1,4 +1,4 @@
 #!/bin/bash
 
 #search pid from Lora_APRS_gateway and return the State of this pid from netstat
-lorapid=$(ps aux | grep Lora_APRS_gateway_6.py | grep root) && lora2pid=$(echo \"$lorapid\" | awk '{ print $2 }') && sudo netstat -tnp | grep $lora2pid | awk '{ print $5 }'
+lorapid=$(ps aux | grep Lora_APRS_gateway | grep root) && lora2pid=$(echo \"$lorapid\" | awk '{ print $2 }') && sudo netstat -tnp | grep $lora2pid | awk '{ print $5 }'

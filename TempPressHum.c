@@ -67,10 +67,10 @@ int8_t setupBME280(){
         if (ioctl(fd_Temp, I2C_SLAVE, 0x76) < 0) {
             printf("Failed to acquire bus access and/or talk to slave.\n");
             return 1;
-        }else{
-            printf("Open i2s %s success.\n", sI2C_Dev);
         }
-//        dev.dev_id = BME280_I2C_ADDR_PRIM;
+//	else{
+//            printf("Open i2s %s success.\n", sI2C_Dev);
+//        }
         dev.chip_id = BME280_I2C_ADDR_PRIM;
         dev.intf = BME280_I2C_INTF;
         //printf("Testpoint ....1\n");
@@ -79,7 +79,7 @@ int8_t setupBME280(){
 //        dev.delay_ms = user_delay_ms;
         dev.delay_us = user_delay_us;
         rslt = bme280_init(&dev);
-        printf("setupBME280 finished\n");
+//        printf("setupBME280 finished\n");
         return 0;
 }
 

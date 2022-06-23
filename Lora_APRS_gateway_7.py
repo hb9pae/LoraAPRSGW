@@ -151,6 +151,7 @@ def read_config():
         return False
 
     if bDebug:
+        print(getTime()+ ": Version = " +Version)
         print(getTime()+ ": APRS_IS_CALL = " +APRS_IS_CALL)
         print(getTime()+ ": APRS_IS_PASSCODE = " +APRS_IS_PASSCODE)
         print(getTime()+ ": TRANSMIT = " +TRANSMIT)
@@ -170,7 +171,6 @@ def read_config():
         print(getTime()+ ": LISTEN_IP = " +LISTEN_IP)
         print(getTime()+ ": LISTEN_UDP_PORT = " +str(LISTEN_UDP_PORT))
         print(getTime()+ ": REPLACE_PATH = " +str(REPLACE_PATH))
-        print(getTime()+ ": Version = " +Version)
         print(getTime()+ ": Auth_Timeout = " +str(Auth_Timeout))
         print(getTime()+ ": BME280 = " +BME280)
         print(getTime()+ ": SNR = " +SNR)

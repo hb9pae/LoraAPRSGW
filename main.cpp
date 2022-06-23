@@ -36,9 +36,7 @@ using namespace std;
 string sVersion="V0.7, hb9pae"; 
 string sConfig="./APRS.conf";
 string sPosconf="./Position.conf";
-string sPythonApp="Lora_APRS_gateway_6.py";
-//string sConfig="/home/pi/iot4pi/APRS.conf";
-//string sPythonApp="/home/pi/iot4pi/Lora_APRS_gateway_6.py";
+string sPythonApp="Lora_APRS_gateway_7.py";
 double OLED_timeout =60*5;  //OLED Timeout in seconds
 double TempSend=60*5;      //when to send Temp
 HopeRF o_HopeRF;
@@ -285,7 +283,7 @@ int SetupGW(){
     //##########################
     //BME280
     strBME280=myList.getValue("BME280");
-    printf("BME280 %s\n",strBME280.c_str());
+    //printf("BME280 %s\n",strBME280.c_str());
     if (strBME280.compare("TRUE") == 0){
         //if (o_Temp.setupBME280()!=0){
         if (setupBME280()!=0){
@@ -296,7 +294,7 @@ int SetupGW(){
             return 1;
         }
     }
-    printf("Setup finished\n");
+    //printf("Setup finished\n");
     return iReturn;
 }
 
@@ -760,6 +758,7 @@ int main(int argc, char** argv) {
    
     while(1){
         process_packets();
+	usleep(1000000);
         if(Menue != -1) iButton =o_HMI.readButton();
         /////////////////////////////////////////
         //Read UDP if there are messages form APRS Server
