@@ -56,10 +56,10 @@ Starte die Applikation
 
 # History
 ## 2022-06-22 hb9pae
--High CPU load if  operated without BME280. Sleep command added.
--Python script changed to Version 0.7
--Startup script changed
--Installation instruction extended
+- High CPU load if  operated without BME280. Sleep command added.
+- Python script changed to Version 0.7
+- Startup script changed
+- Installation instruction extended
 
 ## 2022-06-16 hb9pae
 Installation instruction extended
