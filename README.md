@@ -62,7 +62,7 @@ Starte die Applikation
 - Installation instruction extended
 
 ## 2022-06-16 hb9pae
-Installation instruction extended
+- Installation instruction extended
 
 ## 2022-06-15 hb9pae
 - Correction pressure  to absolute air pressure at sea level.
