@@ -413,7 +413,7 @@ def replace_path(packet):
     return bpacket
 
 def process():
-    print(getTime()+ ": Starting Lora_APRS_gateway_6.py")
+    print(getTime()+ ": Starting Lora_APRS_gateway_7.py")
     if(read_config()):
         if(open_connections()):
             send_packet(auth_packet())

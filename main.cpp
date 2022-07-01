@@ -506,6 +506,7 @@ void showStatistic(){
         Result="APRS_IS_HOST";
         o_HMI.showLine(Line,Result.c_str());
         Line++;
+
         string s_socketip = "./check_APRS_IS_connection";
         const string socketip_Result = o_APRS.exec(s_socketip.c_str());
         if(socketip_Result.length() >= 7) {
@@ -515,7 +516,8 @@ void showStatistic(){
             printf("APRS_IS = Not Connected\n");
             o_HMI.showLine(Line,"Not Connected");
         }
-        
+
+
     }else if (StatisticPage==5){
         char sTemp[100];
         sprintf(sTemp,"Temp:= %0.1fC \n",getTemp());
@@ -899,6 +901,7 @@ int main(int argc, char** argv) {
                watch_connect_sec=time(NULL)+60;
                 string s_socketip = "./check_APRS_IS_connection";
                 const string socketip_Result = o_APRS.exec(s_socketip.c_str());
+
                 char aprs_state[100];
                 char ipResult[100];
                 char sResultc[1000];
