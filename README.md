@@ -39,7 +39,7 @@ The application LoraAPRSGW consists of:
 - Enable I2C und SPI  (sudo raspi-config, Interface Options)
 - Reboot RPI (sudo reboot)
 
-## Surce code 
+## Source code 
 - git clone https://github.com/hb9pae/LoraAPRSGW.git
 - cd LoraAPRSGW
 - make clean
