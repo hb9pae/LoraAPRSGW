@@ -1,60 +1,62 @@
 # LoraAPRSGW
-2022-06-20, hb9pae
+2022-07-01, hb9pae
 
+## General 
+LoRa (from "long range") is a physical proprietary radio modulation technique.
+It is based on spread-spectrum modulation techniques derived from chirp spread spectrum (CSS) technology.
+(c) Wikipedia
 
-## Allgemeines
-Die Modulationsart «LoRa» (Long Range) erlaubt durch ein Frequenzspreizverfahren (spread-spectrum technique)
-die effiziente Übertragung von Daten mit geringer Leistung über grosse Distanzen. 
+This application receives a LoRa modulated APRS Beacon from any LoRa-APRS Tracker and transmits the demodulated APRS datapacket to the APRS-IS server (Automatic Packet Reporting System-Internet Service).
+In addition, local position and sensor datas like temperature, humidity and air pressure are periodically transmitted.
 
-In dieser Anwendung werden GPS-Positionsdaten, zusammen mit einem APRS-Symbol und Sensordaten (Temperatur, 
-Luftdruck und Luftfeuchtigkeit) an den APRS-IS Server (Automatic Packet Reporting System-Internet Service) übermittelt. 
+The website http://www.iot4pi.com/de/hardware/lora-gateway/ served as the basis for this project.
 
-Grundlage dieses Projektes diente die Webseite http://www.iot4pi.com/de/hardware/lora-gateway/.  
-
-Wir haben eine Aufsteckplatine für den RPI-PI entwickelt. Interessenten melden sich unter  info@swiss-artg.ch.
-  
+We have developed a plug-on board for the Raspberry Pi. Interested parties contact us at info@swiss-artg.ch.
 ----------------------------------
 
-## Code Aufbau
-Die Applikation LoraAPRSGW besteht aus folgenden Programmteilen:
-- Programm LoraAPRS	Hauptprogramm C++
-- Lora_APRS_gateway_7.py	Python Programm, Kommunikation mit dem APRS-IS Server 
-- APRS.conf		APRS Konfiguration
-- Position.conf		Standortdaten		
+## code structure 
+The application LoraAPRSGW consists of:
+- Main program LoraAPRS
+- Lora_APRS_gateway_7.py	(APRS_IS Gateway) 
+- APRS.conf			(APRS Setup) 
+- Position.conf			(APRS position data) 
+- loraprs.service		(Programm control Systemd)
 
-- loraprs.service	Systemd Steuerdaten  (/etc/systemd/system/)
+## Requirements
+- Raspberry Pi 2,3 oder 3+
+- Raspberry Pi OS Lite (Legacy), 32 bit, Debian 10 (Buster)
 
-
-Installiere folgende Libs
+## Libraries
 - sudo apt install libi2c-dev 
 - sudo apt install screen 
 
-Installiere den OLED-Driver
+## OLED Display Driver 
 - git clone https://github.com/hallard/ArduiPi_OLED 
 - cd ArduinoPI_OLED
 - sudo make
-- cd 
 
-Aktiviere I2C und SPI Interface
+## Aktiviere I2C und SPI Interface
 - Enable I2C und SPI  (sudo raspi-config, Interface Options)
 - Reboot RPI (sudo reboot)
 
-## Installation LoraAPRSGW
-Kompiliere und Linke den Code 
-- cd /home/pi/LoraAPRSGW
+## Surce code 
+- git clone https://github.com/hb9pae/LoraAPRSGW.git
+- cd LoraAPRSGW
 - make clean
 - make 
 
-Kopiere die Systemd-Startdatei  
+## Copy control script 
 - sudo cp Systemd/loraaprs.service /etc/systemd/system
 
-Enable die Sytemd-Startdatei	  
+## Enable and start control script	  
 - sudo systemctl enable loraaprs.service
-Starte die Applikation	  
 - sudo systemctl start loraaprs.service
 
-
+--------------------------------------
 # History
+## 2022-07-01 hb9pae 
+- additional remarks 
+
 ## 2022-06-22 hb9pae
 - High CPU load if  operated without BME280. Sleep command added.
 - Python script changed to Version 0.7
@@ -89,6 +91,4 @@ Tagged as V0.1
 ## LoRa APRS Gateway (Sascha's iot4pi version) 
 Many thanks Sascha for providing us a copy of the LoRa-APRS Gateway code!  
 I have uploaded the Code 'as-it-is'.
-73,
-Bernd/OE1ACM
-
+73, Bernd/OE1ACM
