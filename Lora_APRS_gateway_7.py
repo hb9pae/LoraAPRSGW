@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright 2012 Leigh L. Klotz, Jr. WA5ZNU Leigh@WA5ZNU.org
 # MIT License: see LICENSE.txt

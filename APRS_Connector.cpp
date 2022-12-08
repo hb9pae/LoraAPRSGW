@@ -142,7 +142,7 @@ int APRS_Connector::startAPRS_Connector(string PythonApp) {
     //const string ping_Result = exec(s_pwd.c_str());
     //int iLen = ping_Result.length();
     //printf("pwd Result = %s", ping_Result.c_str());
-    m_Path.append("python ");
+    m_Path.append("python3 ");
     //m_Path.append(ping_Result.substr(0, iLen - 1));
     //m_Path.append("/");
     //m_Path.append(m_PythonApp);
@@ -185,7 +185,7 @@ int APRS_Connector::startAPRS_Connector(string PythonApp) {
  */
 int APRS_Connector::process_activ(){
     int iReturn=-1;
-    string s_process = "ps aux | grep python";
+    string s_process = "ps aux | grep Lora_APRS_gateway_7";
     const string process_Result = exec(s_process.c_str());
     //int iLen = process_Result.length();
     //printf("process Result = %s", process_Result.c_str());
