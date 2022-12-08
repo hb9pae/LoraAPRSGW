@@ -59,7 +59,7 @@ int HopeRF::setupHopeRF(){
     delay(100);
     digitalWrite(m_RST, LOW);
     delay(100);
-    byte version = readRegister(REG_VERSION);
+    _byte version = readRegister(REG_VERSION);
     printf("Version Number %#04x \n", version);
     if (version == 0x22) {
         //Version code of the chip        
@@ -92,9 +92,9 @@ int HopeRF::setupHopeRF(){
     writeRegister(REG_FRF_MID, (uint8_t)(frf>> 8) );
     writeRegister(REG_FRF_LSB, (uint8_t)(frf>> 0) );
     //DebugPrint
-    byte freq_MSB = readRegister(REG_FRF_MSB);
-    byte freq_MID = readRegister(REG_FRF_MID);
-    byte freq_LSB = readRegister(REG_FRF_LSB);
+    _byte freq_MSB = readRegister(REG_FRF_MSB);
+    _byte freq_MID = readRegister(REG_FRF_MID);
+    _byte freq_LSB = readRegister(REG_FRF_LSB);
     printf("Freq is  %#04x  %#04x  %#04x \n", freq_MSB,freq_MID,freq_LSB);
 
     //@APA HopeRF can't set a SyncWord
@@ -107,9 +107,9 @@ int HopeRF::setupHopeRF(){
     //  REG_MODEM_CONFIG    = 0111 001 0  = 0x72 = 114  //Config mit BW 125
     //  REG_MODEM_CONFIG2   = 1100 0 1 11 = 0xC7 = 199
     //  REG_MODEM_CONFIG3   = 0000 1 0 00 = 0x08 = 8 --> is setting Mobile Note Bit Nececssery ??
-    byte Conf1=m_bBW<<4|m_bCR<<1|0x00;  
-    byte Conf2=m_bSF<<4|0x00<<3|0x01<<2|0x03;
-    byte Conf3=0x01<<3;
+    _byte Conf1=m_bBW<<4|m_bCR<<1|0x00;  
+    _byte Conf2=m_bSF<<4|0x00<<3|0x01<<2|0x03;
+    _byte Conf3=0x01<<3;
     /*
     printf("Conf1 %#04x \n",Conf1);
     printf("Conf2 %#04x \n",Conf2);
@@ -186,14 +186,14 @@ int HopeRF::setupTxHopeRF(){
     writeRegister(REG_FRF_MID, (uint8_t)(frf>> 8) );
     writeRegister(REG_FRF_LSB, (uint8_t)(frf>> 0) );
     //DebugPrint
-    byte freq_MSB = readRegister(REG_FRF_MSB);
-    byte freq_MID = readRegister(REG_FRF_MID);
-    byte freq_LSB = readRegister(REG_FRF_LSB);
+    _byte freq_MSB = readRegister(REG_FRF_MSB);
+    _byte freq_MID = readRegister(REG_FRF_MID);
+    _byte freq_LSB = readRegister(REG_FRF_LSB);
     printf("TX Freq is  %#04x  %#04x  %#04x \n", freq_MSB,freq_MID,freq_LSB);
     //Write Config1 - Config3
-    byte Conf1=m_bBW<<4|m_bCR<<1|0x00;  
-    byte Conf2=m_bSF<<4|0x00<<3|0x01<<2|0x03;
-    byte Conf3=0x01<<3;
+    _byte Conf1=m_bBW<<4|m_bCR<<1|0x00;  
+    _byte Conf2=m_bSF<<4|0x00<<3|0x01<<2|0x03;
+    _byte Conf3=0x01<<3;
     
     writeRegister(REG_MODEM_CONFIG,Conf1);
     writeRegister(REG_MODEM_CONFIG2,Conf2);
@@ -381,7 +381,7 @@ int HopeRF::receivepacket(){
                 return 1;   
             }//end if PacketType 0x3c
 
-            byte value = readRegister(REG_PKT_SNR_VALUE);
+            _byte value = readRegister(REG_PKT_SNR_VALUE);
             if( value & 0x80 ) // The SNR sign bit is 1
             {
                 // Invert and divide by 4
@@ -403,7 +403,7 @@ int HopeRF::receivepacket(){
             strftime(stat_timestamp, sizeof stat_timestamp, "%F %T %Z", gmtime(&t));
             printf("Time: %s\n",stat_timestamp);
 
-            byte lora_PacketSNR=readRegister(0x1A)-rssicorr;
+            _byte lora_PacketSNR=readRegister(0x1A)-rssicorr;
             printf("Packet RSSI: %d, ",lora_PacketSNR);
             printf("RSSI: %d, ",readRegister(0x1B)-rssicorr);
             printf("SNR: %li, ",SNR);
@@ -493,7 +493,7 @@ Return:
 */
 int HopeRF::TXSendPacket(char* buffer, int size,int Ack){
     int iReturn = 1;
-    byte st0;
+    _byte st0;
     st0 = readRegister(REG_OPMODE);	// Save the previous status
 
     // Stdby LoRa mode to write in FIFO
@@ -521,7 +521,7 @@ int HopeRF::TXSendPacket(char* buffer, int size,int Ack){
 	for(int i = 0; i<size;i++){
 		Message[i+3]=buffer[i];
 	}
-    printf("Sending Message...len =%d | size=%d |",sizeof(Message),size);
+    printf("Sending Message...len =%ld | size=%d |",sizeof(Message),size);
 
 
     for(int i = 0; i < size+3; i++)  //Bug war auf uint8_t
@@ -578,7 +578,7 @@ int HopeRF::TXSendPacket(char* buffer, int size,int Ack){
 */
 int HopeRF::doCAD(int counter){
     int state = 2;
-    byte value = 0x00;
+    _byte value = 0x00;
     unsigned long startDoCad,startCAD;
     unsigned long  endCAD, endDoCad;
     unsigned long previous;
@@ -586,7 +586,7 @@ int HopeRF::doCAD(int counter){
     bool failedCAD=false;
     uint8_t retryCAD = 3;
     uint8_t save_counter;
-    byte st0;
+    _byte st0;
 
     st0 = readRegister(REG_OPMODE);	// Save the previous status
     //printf("HopeRF::Starting 'doCAD'\n");
@@ -751,8 +751,8 @@ string HopeRF::double2string(float iNumber){
 
 
 //@APA copy string to Payload Field
-void HopeRF::copy2field(byte fieldNr, char* strTemp, byte len){
-    byte i=0;
+void HopeRF::copy2field(_byte fieldNr, char* strTemp, _byte len){
+    _byte i=0;
     /*
     printf("Nr = %x\t",fieldNr);
     printf("len = %x\t",len);
@@ -824,7 +824,7 @@ Somit die Vermutung, dass man sich dadurch auch den PayloadCrcError zerstört  ?
 //    long int SNR=0;
 //    int hop_channel=readRegister(REG_HOP_CHANNEL);
 //    printf("Hop_channel: 0x%x\n",hop_channel);
-    byte value = readRegister(REG_PKT_SNR_VALUE);
+    _byte value = readRegister(REG_PKT_SNR_VALUE);
     if( value & 0x80 ) // The SNR sign bit is 1
     {
         // Invert and divide by 4
@@ -854,8 +854,8 @@ Somit die Vermutung, dass man sich dadurch auch den PayloadCrcError zerstört  ?
         //@APA Set Flags again
         writeRegister(REG_IRQ_FLAGS, 0xFF);
         
-        byte currentAddr = readRegister(REG_FIFO_RX_CURRENT_ADDR);
-        byte receivedCount = readRegister(REG_RX_NB_BYTES);
+        _byte currentAddr = readRegister(REG_FIFO_RX_CURRENT_ADDR);
+        _byte receivedCount = readRegister(REG_RX_NB_BYTES);
 
         if(receivedCount>MAX_MSG_LEN){
             //Message len too long
@@ -886,7 +886,7 @@ void HopeRF::unselectreceiver()
     digitalWrite(m_ssPin, HIGH);
 }
 
-byte HopeRF::readRegister(byte addr)
+_byte HopeRF::readRegister(_byte addr)
 {
     unsigned char spibuf[2];
 
@@ -899,7 +899,7 @@ byte HopeRF::readRegister(byte addr)
     return spibuf[1];
 }
 
-void HopeRF::writeRegister(byte addr, byte value)
+void HopeRF::writeRegister(_byte addr, _byte value)
 {
     unsigned char spibuf[2];
 

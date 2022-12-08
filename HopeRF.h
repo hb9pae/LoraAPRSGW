@@ -74,7 +74,7 @@
 #define bitRead(value, bit) (((value) >> (bit)) & 0x01)  // read a bit
 
 
-typedef unsigned char byte;
+typedef unsigned char _byte;
 static const int CHANNEL = 0;
 static const int rssicorr = 137; //in HopeRF Spec page 82
 static const int rssi_threshold= -70;
@@ -118,16 +118,16 @@ private:
     int m_sf;       //spreading factor (SF7 - SF12)
     double m_bw;    //Bandwith
     int m_cr;       //Coding Rate
-    byte m_bSF;     
-    byte m_bBW;
-    byte m_bCR;
+    _byte m_bSF;     
+    _byte m_bBW;
+    _byte m_bCR;
     int m_snr;
     uint32_t cp_nb_rx_rcv;
     uint32_t cp_nb_rx_ok;
     uint32_t cp_nb_rx_bad;
     uint32_t cp_nb_rx_nocrc;
     uint32_t cp_up_pkt_fwd;
-    byte receivedbytes;
+    _byte receivedbytes;
     // Set center frequency
     uint32_t  m_freq; // in hz! (433650000)
     uint32_t m_txfreq;
@@ -142,12 +142,12 @@ private:
     /*         */
 
     string double2string(float iNumber);
-    void copy2field(byte fieldNr, char* strTemp, byte len);
+    void copy2field(_byte fieldNr, char* strTemp, _byte len);
     int receivePkt(char *payload);
     void selectreceiver();
     void unselectreceiver();
-    byte readRegister(byte addr);
-    void writeRegister(byte addr, byte value);
+    _byte readRegister(_byte addr);
+    void writeRegister(_byte addr, _byte value);
 };
 
 #endif /* HOPERF_H */
