@@ -31,8 +31,8 @@ The application LoraAPRSGW consists of:
 - sudo apt install screen 
 
 ## OLED Display Driver 
-- git clone https://github.com/hallard/ArduiPi_OLED 
-- cd ArduinoPI_OLED
+- git clone https://github.com/gavinlyonsrepo/SSD1306_OLED_RPI.git
+- cd SSD1306_OLED_RPI
 - sudo make
 
 ## Aktiviere I2C und SPI Interface
@@ -54,6 +54,9 @@ The application LoraAPRSGW consists of:
 
 --------------------------------------
 # History
+## 2022-12-04 hb9xar
+- replaced OLED display driver (get rid of ArduiPi_OLED, as it does not work with 64bit OSs due to kernel restrictions in direct memory access via /dev/mem)
+
 ## 2022-07-01 hb9pae 
 - additional remarks 
 
