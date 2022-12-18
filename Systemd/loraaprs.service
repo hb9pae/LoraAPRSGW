@@ -5,8 +5,8 @@ After=syslog.target network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/home/pi/LoraAPRSGW
-ExecStart=/home/pi/LoraAPRSGW/LoraAPRS_Start.sh 
+WorkingDirectory=/home/ubuntu/src/LoraAPRSGW
+ExecStart=/home/ubuntu/src/LoraAPRSGW/LoraAPRS_Start.sh 
 Restart=on-failure
 
 [Install]
