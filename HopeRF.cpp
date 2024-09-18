@@ -438,20 +438,21 @@ int HopeRF::receivepacket(){
                         if(tempstring[x+1]=='!'){
                             m_Type=1;
                             break;
-                        } /*else if(tempstring[x+1]==':'){
+                        } else if(tempstring[x+1]=='='){
                             m_Type=1;
                             break;
-                        } */
+                        }
                     }
                 }//end for
             }
             //printf("-----Temp Output tempstring = %s\n",tempstring);
             outString=tempstring;
 
-            if (m_Type == 1){
+	    // GPS packet? enough space available (assume 32 bytes is enough)?
+	    if ((m_Type == 1) && (receivedbytes < (MAX_MSG_LEN - 32))){
                 printf("Packet Type 1 \n");
                 //printf("-----Temp Output String = %s\n",outString.c_str());
-                outString += " SNR="; 
+                outString += " || GW SNR:"; 
 
                 if (iSNR> 127){
                     outString += "-";
@@ -460,9 +461,10 @@ int HopeRF::receivepacket(){
                     outString += "+";
                     outString += double2string( (iSNR) / 4);
                 }
-                outString += "dB RSSI=";
+//                outString += "dB RSSI:-23dB";
+                outString += "dB RSSI:";
                 outString += double2string(iRSSI);
-                outString += ("db");
+                outString += ("dB");
 
             } /* else if (m_Type == 1){
                 printf("Packet Type 1 \n");
