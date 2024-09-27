@@ -53,7 +53,7 @@ string wlan0;
 int ConfigPage=1; //which page is showing
 int StatisticPage=1; //which page is showing
 string showErrorAtStart="TRUE";
-int ALTITUDE;
+extern int ALTITUDE;
 
 //Hf Parameter
 uint32_t RxFrequ;
@@ -768,7 +768,7 @@ int main(int argc, char** argv) {
         iReturn=o_APRS.receiveUDP(c_Receiv,BufferSize);
         if(iReturn==0){
             string sMessage(c_Receiv);
-            printf("Received from UDP %d %s\n",sMessage.length(),sMessage.c_str());
+            printf("Received from UDP %ld %s\n",sMessage.length(),sMessage.c_str());
             
             int x=0,y=0;
             for(;;) {

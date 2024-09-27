@@ -1,6 +1,10 @@
 
+#include <unistd.h>
 
 #include "HMI.h"
+
+    // instanciate display
+    SSD1306 display(myOLEDwidth, myOLEDheight);
 
 HMI::HMI(){
     m_width=0;
@@ -25,27 +29,36 @@ int HMI::setupHMI(){
     pinMode(SW_2,INPUT);
     pinMode(SW_3,INPUT);
     pinMode(SW_4,INPUT);
-    pinMode(SW_4,INPUT);
+    pinMode(SW_5,INPUT);
     pinMode(Power_Oled,OUTPUT);
     
     //printf("Power OLED on..\n");
     digitalWrite(Power_Oled,HIGH);
     usleep(mTimout);
     
+    //Initialize bcm2835
+    //printf("Initializing bcm2835..\n");
+    if ( !bcm2835_init() ) {
+        printf("Error initialising bcm2835..\n");
+	return (1);
+    }
+    bcm2835_delay(500);
+
     //Set up OLED display
     //printf("Set up display..\n");
-    if ( !display.init(OLED_I2C_RESET,OLED_ADAFRUIT_I2C_128x64) ){
-        //printf("Error initialising display..\n");
-        return (1);
-    }
-    display.begin();
+    display.OLEDbegin();
+    display.OLEDFillScreen(0xF0, 0); // splash screen bars
+    bcm2835_delay(1000);
+    // allocate display buffer
+    static uint8_t  screenBuffer[myOLEDwidth * (myOLEDheight/8)+1];
+    display.buffer = (uint8_t*) &screenBuffer;  // set that to library buffer pointer
 
-    m_width=display.width();
-    m_height=display.height();
+    m_width=myOLEDwidth;
+    m_height=myOLEDheight;
 
     // init done
-    display.clearDisplay();   // clears the screen  buffer
-    display.display();   		// display it (clear display)
+    display.OLEDclearBuffer();		// clears the screen  buffer
+    display.OLEDupdate();		// display it (clear display)
 
     return 0;
 }
@@ -57,23 +70,23 @@ int HMI::readButton(){
     int iButton=0;
     if(digitalRead(SW_1)){
         usleep(mTimout);
-        //printf("SW_1 pressed..\n");
+        printf("SW_1 pressed..\n");
         iButton=1;
     }else if(digitalRead(SW_2)){
         usleep(mTimout);
-        //printf("SW_2 pressed..\n");
+        printf("SW_2 pressed..\n");
         iButton=2;
     }else if(digitalRead(SW_3)){
         usleep(mTimout);        
-        //printf("SW_3 pressed..\n");
+        printf("SW_3 pressed..\n");
         iButton=3;
     }else if(digitalRead(SW_4)){
         usleep(mTimout);
-        //printf("SW_4 pressed..\n");
+        printf("SW_4 pressed..\n");
         iButton=4;
     }else if(digitalRead(SW_5)){
         usleep(mTimout);
-        //printf("SW_5 pressed..\n");
+        printf("SW_5 pressed..\n");
         iButton=5;
     }else{
         iButton=0;
@@ -83,7 +96,7 @@ int HMI::readButton(){
 }
 
 void HMI::drawMenue(const uint16_t x0, const uint16_t zeile_len,const char* sText){
-    drawMenue(x0,display.height()-10, zeile_len,sText);
+    drawMenue(x0,m_height-10, zeile_len,sText);
 }
 
 
@@ -94,12 +107,12 @@ void HMI::drawMenue(const uint16_t x0, const uint16_t y0, const uint16_t zeile_l
     display.setTextColor(BLACK);
     display.setCursor(x0,y0);
     display.print(sText);
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::clearDisplay(){
-    display.clearDisplay();   // clears the screen  buffer
-    display.display();   		// display it (clear display)
+    display.OLEDclearBuffer();		// clears the screen  buffer
+    display.OLEDupdate();   		// display it (clear display)
 }
 
 void HMI::drawWelcome(){
@@ -110,14 +123,14 @@ void HMI::drawWelcome(){
     display.print(Welcome_Text_1);
     display.setCursor(15,30);
     display.print(Welcome_Text_2);
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::printGoodby(){
     printMessage("Goodby","Hope, to see you    again..");
     usleep(3000000);
-    display.clearDisplay();   // clears the screen  buffer
-    display.display();   		// display it (clear display)
+    display.OLEDclearBuffer();		// clears the screen  buffer
+    display.OLEDupdate();   		// display it (clear display)
 }
 
 void HMI::printError(string Error){
@@ -134,7 +147,7 @@ void HMI::printMenue(string sMessage){
 
 void HMI::printMessage(string sHeader,string Error){
     int iThik = 5;
-    display.clearDisplay();   // clears the screen  buffer
+    display.OLEDclearBuffer();		// clears the screen  buffer
     display.fillRect(0,0, m_width, m_height,WHITE);
     display.fillRect(0,iThik*4, m_width, m_height,BLACK);
     display.setTextSize(2);
@@ -164,7 +177,7 @@ void HMI::printMessage(string sHeader,string Error){
             }   
         } 
     }
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::printPacket(string sPacket){
@@ -191,7 +204,7 @@ void HMI::printPacket(string sPacket){
             }   
         } 
     }
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::setbufferPacket(string sPacket){
@@ -203,48 +216,48 @@ void HMI::showbufferPacket(){
 }
 
 void HMI::drawTriangle_down(){
-    const uint16_t x0 = display.width()-15;
-    const uint16_t y0 =display.height()-15;
+    const uint16_t x0 = m_width-15;
+    const uint16_t y0 = m_height-15;
     display.fillTriangle(x0, y0, x0+10, y0, x0+5, y0+5, WHITE);
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::drawTriangle_up(){
-    const uint16_t x0 = display.width()-15;
+    const uint16_t x0 = m_width-15;
     const uint16_t y0 = 10;
     display.fillTriangle(x0, y0, x0+10, y0, x0+5, y0-5, WHITE);
-    display.display();
+    display.OLEDupdate();
 }
 
 void HMI::showConfig(){
     int iThik = 5;
-    display.clearDisplay();   // clears the screen  buffer
+    display.OLEDclearBuffer();	// clears the screen  buffer
     display.fillRect(0,0, m_width-20, m_height,WHITE);
     display.fillRect(0,iThik*2, m_width, m_height,BLACK);
     display.setTextSize(1);
     display.setTextColor(BLACK);
     display.setCursor(30,2);
     display.print("Config");
-    display.display();
+    display.OLEDupdate();
 
 }
 
 void HMI::showStatistic(){
     int iThik = 5;
-    display.clearDisplay();   // clears the screen  buffer
+    display.OLEDclearBuffer();	// clears the screen  buffer
     display.fillRect(0,0, m_width-20, m_height,WHITE);
     display.fillRect(0,iThik*2, m_width, m_height,BLACK);
     display.setTextSize(1);
     display.setTextColor(BLACK);
     display.setCursor(30,2);
     display.print("Statistic");
-    display.display();
+    display.OLEDupdate();
 
 }
 
 void HMI::showPackets(){
     int iThik = 4;
-    display.clearDisplay();   // clears the screen  buffer
+    display.OLEDclearBuffer();	// clears the screen  buffer
     display.fillRect(0,0, m_width-20, m_height,WHITE);
     display.fillRect(0,iThik*2, m_width, m_height,BLACK);
     display.setTextSize(1);
@@ -252,7 +265,7 @@ void HMI::showPackets(){
     display.setCursor(30,2);
     display.print("Packets");
     drawMenue(68,28,"Back");
-    display.display();
+    display.OLEDupdate();
 
 }
 
@@ -261,7 +274,7 @@ void HMI::showLine(int Line, string Text){
     display.setTextColor(WHITE);
     display.setCursor(5,Line*10+15);
     display.print(Text.c_str());
-    display.display();
+    display.OLEDupdate();
 }
 
 int HMI::calcLine(string sText){

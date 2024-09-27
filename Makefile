@@ -1,6 +1,6 @@
-CC=arm-linux-gnueabihf-g++
-CFLAGS=-c -Wall
-LIBS=-lwiringPi -lArduiPi_OLED
+CC=g++
+CFLAGS=-c -Wall -g
+LIBS=-lwiringPi -lbcm2835 -lSSD1306_OLED_RPI
 
 all: LoraAPRS
 
@@ -26,10 +26,10 @@ HMI.o: HMI.cpp
 	$(CC) $(CFLAGS) HMI.cpp
 
 bme280.o: bme280.c
-	arm-linux-gnueabihf-gcc -c bme280.c
+	gcc -c bme280.c
 
 TempPressHum.o:TempPressHum.c bme280.h  
-	arm-linux-gnueabihf-gcc -c TempPressHum.c
+	gcc -c TempPressHum.c
 
 clean:
 	rm *.o
